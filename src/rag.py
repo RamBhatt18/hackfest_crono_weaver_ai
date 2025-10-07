@@ -1,12 +1,10 @@
-# src/rag.py
-
 import os
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from typing import List
 import logging
-import openai
+from openai import OpenAI # <-- MODIFIED IMPORT
 
 from src.config import OPENAI_API_KEY
 
@@ -23,7 +21,10 @@ OPENAI_MODEL = "gpt-3.5-turbo"
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is not set in environment variables.")
 
-openai.api_key = OPENAI_API_KEY
+# <-- INITIALIZE THE NEW OPENAI CLIENT -->
+client = OpenAI(api_key=OPENAI_API_KEY)
+# ----------------------------------------
+
 
 # ---------------------------
 # Helper classes
@@ -107,7 +108,6 @@ class ChatEngine:
         if not sources:
             return f"No relevant tickets found for query: '{query}'"
 
-        # Construct context string from sources
         context = ""
         for i, s in enumerate(sources, 1):
             context += f"Source {i} (Ticket ID: {s.node_id}): {s.text}\n"
@@ -123,9 +123,9 @@ Sources:
 
 Answer:
 """
-
+        # <-- ENTIRE API CALL SECTION IS MODIFIED -->
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=OPENAI_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a helpful enterprise support assistant."},
@@ -134,11 +134,12 @@ Answer:
                 temperature=0.2,
                 max_tokens=500
             )
-            answer_text = response['choices'][0]['message']['content'].strip()
+            answer_text = response.choices[0].message.content.strip()
             return answer_text
         except Exception as e:
             logger.error(f"OpenAI API error: {e}", exc_info=True)
             return f"Error generating answer: {e}"
+        # ---------------------------------------------
 
     # ---------------------------
     # Chat interfaces
