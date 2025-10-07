@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import time
 
-from src.rag import get_chat_engine
+from src.rag import get_chat_engine, reload_index # <-- MODIFIED IMPORT
 from src.config import INPUT_DATA_DIR, PATHWAY_VECTOR_HOST, PATHWAY_VECTOR_PORT
 
 # Configure logging
@@ -246,24 +246,21 @@ with st.sidebar:
             status_message.error(f"Failed to scan input directory: {e}")
             logger.error(f"Error scanning input directory: {e}", exc_info=True)
     
+    # <-- THIS ENTIRE BUTTON LOGIC BLOCK IS THE FIX -->
     if st.button("🔄 Reload RAG Index"):
         try:
             with st.spinner("Reloading knowledge base..."):
+                reload_index() # Actually call the function
                 st.success("Knowledge base successfully updated!")
         except Exception as e:
             st.error(f"Failed to reload knowledge base: {e}")
+    # ---------------------------------------------
     
     st.divider()
     
     st.markdown("### 👥 Team ChronoWeavers AI")
     
-    team_members = [
-        {"name": "Raja Babu (21JE0740)", "role": "Team Lead / Backend & Integration", "skills": ["Python", "FastAPI", "System Architecture"]},
-        {"name": "Tak Abhishek (21JE0979)", "role": "Data Engineer / Pathway Specialist", "skills": ["Pathway", "Real-Time Pipelines", "Vector DBs"]},
-        {"name": "Ram Kumar (21JE0745)", "role": "AI/ML Engineer / RAG Architect", "skills": ["LLM APIs", "Prompt Engineering", "NLP"]},
-        {"name": "Anand Bharti (21JE0102)", "role": "Frontend & UI/UX Developer", "skills": ["Streamlit", "UX Design", "API Consumption"]},
-        {"name": "Anubhav Singh (21JE0141)", "role": "Support Developer / Data Validation", "skills": ["Data Parsing", "Testing", "Git"]}
-    ]
+   
     
     for member in team_members:
         with st.container():
@@ -355,7 +352,7 @@ with tab2:
         ```
         ┌─────────────┐
         │   Pathway   │
-        │  Pipeline   │
+        │   Pipeline  │
         └─────────────┘
         ```
         """)
